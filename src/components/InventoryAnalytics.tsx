@@ -322,7 +322,7 @@ export function InventoryAnalytics({ isOpen, onClose }: InventoryAnalyticsProps)
                           }}
                         >
                           <ZoomableGroup>
-                            <Geographies geography="../../public/indonesia-topo.json">
+                            <Geographies geography="../../indonesia-topo.json">
                               {({ geographies }) =>
                                 geographies.map(geo => {
                                   
