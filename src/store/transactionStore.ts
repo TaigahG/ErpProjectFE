@@ -11,7 +11,7 @@ interface TransactionStore {
   updateTransaction: (id: number, transaction: Partial<Transaction>) => Promise<void>;
 }
 
-const API_URL = 'http://localhost:8000/api/v1/financial';
+const API_URL = 'https://erpprojectbe-production-f59b.up.railway.app/api/v1/financial';
 
 export const useTransactionStore = create<TransactionStore>((set) => ({
   transactions: [],

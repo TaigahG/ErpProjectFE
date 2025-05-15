@@ -27,7 +27,7 @@ interface ReportStore {
   fetchPredictions: (monthsAhead: number) => Promise<void>;
 }
 
-const API_URL = 'http://localhost:8000/api/v1/reports';
+const API_URL = 'https://erpprojectbe-production-f59b.up.railway.app/api/v1/reports';
 
 export const useReportStore = create<ReportStore>((set) => ({
   profitLoss: null,
