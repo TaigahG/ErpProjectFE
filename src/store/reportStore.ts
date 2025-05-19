@@ -17,24 +17,49 @@ interface Prediction {
   confidence_level: number;
   factors: string[];
 }
-
+interface BalanceSheet {
+  as_of_date: string;
+  total_assets: number;
+  total_liabilities: number;
+  total_equity: number;
+  assets_breakdown: Array<{ category: string; amount: number }>;
+  liabilities_breakdown: Array<{ category: string; amount: number }>;
+  equity_breakdown: Array<{ category: string; amount: number }>;
+}
 interface ReportStore {
   profitLoss: ProfitLoss | null;
   predictions: Prediction[];
   isLoading: boolean;
   error: string | null;
+  balanceSheet: BalanceSheet | null;
+  fetchBalanceSheet: (asOfDate: string) => Promise<void>;
   fetchProfitLoss: (startDate: string, endDate: string) => Promise<void>;
   fetchPredictions: (monthsAhead: number) => Promise<void>;
 }
 
-const API_URL = 'https://erpprojectbe-production-f59b.up.railway.app/api/v1/reports';
+
+
+const API_URL = 'http://127.0.0.1:8000/api/v1/reports';
 
 export const useReportStore = create<ReportStore>((set) => ({
   profitLoss: null,
   predictions: [],
   isLoading: false,
   error: null,
+  balanceSheet: null,
 
+  
+  fetchBalanceSheet: async (asOfDate: string) => {
+  set({ isLoading: true });
+    try {
+      const response = await axios.get(`${API_URL}/balance-sheet`, {
+        params: { as_of_date: asOfDate }
+      });
+      set({ balanceSheet: response.data, isLoading: false });
+    } catch (error) {
+      set({ error: 'Failed to fetch balance sheet', isLoading: false });
+    }
+  },
   fetchProfitLoss: async (startDate: string, endDate: string) => {
     set({ isLoading: true });
     try {

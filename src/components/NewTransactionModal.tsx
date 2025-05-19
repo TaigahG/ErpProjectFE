@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useTransactionStore } from '../store/transactionStore';
 import { useInventoryStore } from '../store/inventoryStore';
+import { useAccountCategoryStore } from '../store/accountCategoryStore'; // Add this import
 import { CreateTransactionDTO } from '../types/transaction';
+import { AccountCategory } from '../types/accountCategory'; // Add this import
 
 interface NewTransactionModalProps {
   isOpen: boolean;
@@ -11,34 +13,54 @@ interface NewTransactionModalProps {
 
 export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProps) {
   const indonesianRegions = [
-  'Jakarta Pusat', 'Jakarta Barat', 'Jakarta Selatan', 'Jakarta Timur', 'Jakarta Utara',
-  'Bandung', 'Surabaya', 'Medan', 'Semarang', 'Makassar', 'Palembang',
-  'Bali', 'Yogyakarta', 'Tangerang', 'Bekasi', 'Depok',
-  'Bogor', 'Malang', 'Padang', 'Pontianak', 'Banjarmasin',
-  'Lampung', 'Aceh', 'Manado', 'Papua', 'Riau', 'Jambi'
-];
-  const [formData, setFormData] = useState<CreateTransactionDTO & { inventory_item_id?: number, quantity?: number }>({
-    transaction_type: 'INCOME',
-    amount: 0,
+    'Jakarta Pusat', 'Jakarta Barat', 'Jakarta Selatan', 'Jakarta Timur', 'Jakarta Utara',
+    'Bandung', 'Surabaya', 'Medan', 'Semarang', 'Makassar', 'Palembang',
+    'Bali', 'Yogyakarta', 'Tangerang', 'Bekasi', 'Depok',
+    'Bogor', 'Malang', 'Padang', 'Pontianak', 'Banjarmasin',
+    'Lampung', 'Aceh', 'Manado', 'Papua', 'Riau', 'Jambi'
+  ];
+  
+  const [formData, setFormData] = useState<CreateTransactionDTO & { 
+    inventory_item_id?: number, 
+    quantity?: number,
+    account_category_id?: number 
+  }>({
+    transaction_type: 'INCOME', 
+    amount:0,
     category: '',
     description: '',
     transaction_date: new Date().toISOString().split('T')[0],
-    region:'',
-    notes: ''
+    region: '',
+    notes: '',
+    account_category_id: 0 // Add this initial value
   });
   
   const [useInventoryItem, setUseInventoryItem] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [itemQuantity, setItemQuantity] = useState(1);
+  const [filteredCategories, setFilteredCategories] = useState<AccountCategory[]>([]); // Add this state
 
   const { addTransaction, isLoading } = useTransactionStore();
   const { items, fetchItems } = useInventoryStore();
+  const { categories, fetchCategories, isLoading: categoriesLoading } = useAccountCategoryStore();
 
   useEffect(() => {
     if (isOpen) {
       fetchItems();
+      fetchCategories(); // Add this line to fetch account categories
     }
-  }, [isOpen, fetchItems]);
+  }, [isOpen, fetchItems, fetchCategories]);
+
+  useEffect(() => {
+    if (categories.length) {
+      const filtered = categories.filter(cat => cat.type === formData.transaction_type);
+      setFilteredCategories(filtered);
+      
+      if (filtered.length && !filtered.find(c => c.id === formData.account_category_id)) {
+        setFormData(prev => ({ ...prev, account_category_id: filtered[0].id }));
+      }
+    }
+  }, [categories, formData.transaction_type]);
 
   useEffect(() => {
     if (selectedItemId) {
@@ -74,7 +96,8 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'amount' ? parseFloat(value) : value
+      [name]: name === 'amount' ? parseFloat(value) : 
+              name === 'account_category_id' ? parseInt(value) : value // Add this condition
     }));
   };
   
@@ -115,12 +138,33 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
-                <option value="INCOME">Income</option>
+                <option value="ASSET">Asset</option>
+                <option value="LIABILITY">Liability</option>
+                <option value="EQUITY">Equity</option>
+                <option value="INCOME">Revenue</option>
                 <option value="EXPENSE">Expense</option>
               </select>
             </div>
             
-            {formData.transaction_type === 'INCOME' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Account Category</label>
+              <select
+                name="account_category_id"
+                value={formData.account_category_id || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+              >
+                <option value="">Select an account category</option>
+                {filteredCategories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.parent_id ? '    ' : ''}{category.code} - {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            {formData.transaction_type === 'INCOME' && ( 
               <div className="border-t border-b py-3">
                 <label className="flex items-center space-x-2">
                   <input
@@ -183,7 +227,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
               </div>
             )}
             
-            {(!useInventoryItem || formData.transaction_type === 'EXPENSE') && (
+            {(!useInventoryItem || formData.transaction_type !== 'INCOME') && ( 
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Amount</label>

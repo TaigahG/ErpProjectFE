@@ -83,10 +83,8 @@ export function InventoryAnalytics({ isOpen, onClose }: InventoryAnalyticsProps)
           <div className="p-4 text-center">Loading analytics...</div>
         ) : analytics ? (
           <div>
-            {/* Overview Tab */}
             {activeTab === 'overview' && (
               <div className="space-y-8">
-                {/* Top Selling Items */}
                 <div>
                   <h3 className="text-lg font-medium mb-3">Top Selling Items</h3>
                   <div className="h-64">
@@ -104,7 +102,6 @@ export function InventoryAnalytics({ isOpen, onClose }: InventoryAnalyticsProps)
                   </div>
                 </div>
                 
-                {/* Items to Restock */}
                 <div>
                   <h3 className="text-lg font-medium mb-3">Items to Restock</h3>
                   <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -169,7 +166,6 @@ export function InventoryAnalytics({ isOpen, onClose }: InventoryAnalyticsProps)
                   </div>
                 </div>
                 
-                {/* Growth Items */}
                 <div>
                   <h3 className="text-lg font-medium mb-3">Fastest Growing Items</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -201,7 +197,6 @@ export function InventoryAnalytics({ isOpen, onClose }: InventoryAnalyticsProps)
               </div>
             )}
 
-            {/* All Items by Sales Tab */}
             {activeTab === 'all-items' && (
               <div>
                 <h3 className="text-lg font-medium mb-3">All Items Ranked by Sales</h3>
@@ -418,7 +413,6 @@ export function InventoryAnalytics({ isOpen, onClose }: InventoryAnalyticsProps)
               </div>
             )}
 
-            {/* Item Detail Tab (shown when an item is selected) */}
             {activeTab === 'item-detail' && selectedItem && (
               <div>
                 <div className="flex items-center mb-6">
@@ -496,7 +490,6 @@ export function InventoryAnalytics({ isOpen, onClose }: InventoryAnalyticsProps)
                   </div>
                 </div>
                 
-                {/* Regional Sales for this Item */}
                 <div>
                   <h4 className="font-medium text-gray-700 mb-3">Regional Sales Distribution</h4>
                   

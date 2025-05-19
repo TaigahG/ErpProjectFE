@@ -8,6 +8,8 @@ import { Reports } from './pages/Reports';
 import { Login } from './pages/Login';
 import { PrivateRoute } from './components/PrivateRoute';
 import { Inventory } from './pages/inventory';
+import { BalanceSheet } from './components/BalanceSheet';
+
 
 function App() {
   return (
@@ -20,7 +22,8 @@ function App() {
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/reports" element={<Reports />} />
-            <Route path="/inventory" element={<Inventory />} />         
+            <Route path="/inventory" element={<Inventory />} />     
+            <Route path="/reports/balance-sheet" element={<BalanceSheet />} />    
           </Route>
         </Route>
       </Routes>
