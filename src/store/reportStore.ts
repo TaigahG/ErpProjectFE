@@ -17,14 +17,25 @@ interface Prediction {
   confidence_level: number;
   factors: string[];
 }
+interface AccountItem {
+  category: string;
+  code: string;
+  parent_id: number | null;
+  amount: number;
+  children?: AccountItem[];
+}
+
 interface BalanceSheet {
   as_of_date: string;
   total_assets: number;
   total_liabilities: number;
   total_equity: number;
-  assets_breakdown: Array<{ category: string; amount: number }>;
-  liabilities_breakdown: Array<{ category: string; amount: number }>;
-  equity_breakdown: Array<{ category: string; amount: number }>;
+  assets?: AccountItem[];
+  liabilities?: AccountItem[];
+  equity?: AccountItem[];
+  assets_breakdown?: Array<{ category: string; amount: number }>;
+  liabilities_breakdown?: Array<{ category: string; amount: number }>;
+  equity_breakdown?: Array<{ category: string; amount: number }>;
 }
 interface ReportStore {
   profitLoss: ProfitLoss | null;
@@ -39,7 +50,8 @@ interface ReportStore {
 
 
 
-const API_URL = 'http://127.0.0.1:8000/api/v1/reports';
+const API_URL = 'https://erpprojectbe-production-f59b.up.railway.app/api/v1/reports';
+
 
 export const useReportStore = create<ReportStore>((set) => ({
   profitLoss: null,
