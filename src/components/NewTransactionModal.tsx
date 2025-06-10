@@ -32,7 +32,7 @@ export function NewTransactionModal({ isOpen, onClose }: NewTransactionModalProp
     transaction_date: new Date().toISOString().split('T')[0],
     region: '',
     notes: '',
-    account_category_id: 0 // Add this initial value
+    account_category_id: 0
   });
   
   const [useInventoryItem, setUseInventoryItem] = useState(false);

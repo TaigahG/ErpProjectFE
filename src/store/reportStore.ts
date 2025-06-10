@@ -50,7 +50,8 @@ interface ReportStore {
 
 
 
-const API_URL = 'https://erpprojectbe-production-f59b.up.railway.app/api/v1/reports';
+// const API_URL = 'https://erpprojectbe-production-f59b.up.railway.app/api/v1/reports';
+const API_URL = "http://127.0.0.1:8000/api/v1/reports"
 
 
 export const useReportStore = create<ReportStore>((set) => ({

@@ -15,6 +15,7 @@ interface InventoryStore {
   deleteItem: (id: number) => Promise<void>;
 }
 
+// const API_URL = 'http://127.0.0.1:8000/api/v1/inventory';
 const API_URL = 'https://erpprojectbe-production-f59b.up.railway.app/api/v1/inventory';
 
 export const useInventoryStore = create<InventoryStore>((set) => ({

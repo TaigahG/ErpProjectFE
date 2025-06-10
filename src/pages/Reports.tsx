@@ -6,7 +6,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { ReportExporter } from '../components/ReportExporter';
 import { ReportHtmlExporter } from '../components/ReportHtmlExporter';
 
-
 export function Reports() {
   const [dateRange, setDateRange] = useState('thisYear');
   const { profitLoss, predictions, isLoading, fetchProfitLoss, fetchPredictions } = useReportStore();
@@ -14,10 +13,40 @@ export function Reports() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  const formatCurrency = (amount: number | null | undefined): string => {
+    if (amount === null || amount === undefined) return 'Rp 0';
+    return `Rp ${Math.round(amount).toLocaleString('id-ID')}`;
+  };
 
+  const formatMillions = (value: number): string => {
+    if (value >= 1000000) {
+      return `Rp ${(value / 1000000).toFixed(1)}M`;
+    } else if (value >= 1000) {
+      return `Rp ${(value / 1000).toFixed(0)}K`;
+    } else {
+      return `Rp ${value.toFixed(0)}`;
+    }
+  };
+
+  // Custom tooltip component for the chart
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-gray-300 rounded-lg shadow-lg">
+          <p className="font-medium text-gray-900 mb-2">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.color }} className="text-sm">
+              {entry.name}: {entry.value !== null ? formatCurrency(entry.value) : 'N/A'}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   useEffect(() => {
-  const today = new Date();
+    const today = new Date();
     let start, end;
     
     if (dateRange === 'thisYear') {
@@ -26,10 +55,21 @@ export function Reports() {
     } else if (dateRange === 'lastYear') {
       start = new Date(today.getFullYear() - 1, 0, 1);
       end = new Date(today.getFullYear() - 1, 11, 31);
-    } else {
-      // Custom range - use current date as default
+    } else if (dateRange === 'last12Months') {
+      end = new Date();
+      start = new Date();
+      start.setFullYear(start.getFullYear() - 1);
+    } else if (dateRange === 'thisMonth') {
       start = new Date(today.getFullYear(), today.getMonth(), 1);
-      end = today;
+      end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (dateRange === 'last3Months') {
+      end = new Date();
+      start = new Date();
+      start.setMonth(start.getMonth() - 3);
+    } else {
+      end = new Date();
+      start = new Date();
+      start.setMonth(start.getMonth() - 6);
     }
     
     const startDateStr = start.toISOString().split('T')[0];
@@ -40,7 +80,7 @@ export function Reports() {
     
     fetchProfitLoss(startDateStr, endDateStr);
     fetchPredictions(3);
-  }, [fetchProfitLoss, fetchPredictions]);
+  }, [dateRange, fetchProfitLoss, fetchPredictions]);
 
   const chartData = useMemo(() => {
     if (!profitLoss) return [];
@@ -103,10 +143,40 @@ export function Reports() {
             onChange={(e) => setDateRange(e.target.value)}
             className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
+            <option value="thisMonth">This Month</option>
+            <option value="last3Months">Last 3 Months</option>
+            <option value="last12Months">Last 12 Months</option>
             <option value="thisYear">This Year</option>
             <option value="lastYear">Last Year</option>
             <option value="customRange">Custom Range</option>
           </select>
+          
+          {dateRange === 'customRange' && (
+            <div className="flex space-x-2">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+              <button
+                onClick={() => {
+                  fetchProfitLoss(startDate, endDate);
+                  fetchPredictions(3);
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              >
+                Apply
+              </button>
+            </div>
+          )}
+          
           <div className="flex space-x-2">
             <ReportExporter 
               reportType="profit-loss" 
@@ -151,21 +221,23 @@ export function Reports() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Total Revenue</span>
-                  <span className="text-green-600 font-medium">
-                    Rp {profitLoss?.total_revenue?.toLocaleString() ?? '0'}
+                  <span className="text-green-600 font-medium text-lg">
+                    {formatCurrency(profitLoss?.total_revenue)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Total Expenses</span>
-                  <span className="text-red-600 font-medium">
-                    Rp {profitLoss?.total_expenses?.toLocaleString() ?? '0'}
+                  <span className="text-red-600 font-medium text-lg">
+                    {formatCurrency(profitLoss?.total_expenses)}
                   </span>
                 </div>
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center font-semibold">
                     <span className="text-gray-900">Net Profit</span>
-                    <span className={(profitLoss?.net_profit ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600'}>
-                      Rp {profitLoss?.net_profit?.toLocaleString() ?? '0'}
+                    <span className={`text-xl ${
+                      (profitLoss?.net_profit ?? 0) >= 0 ? 'text-blue-600' : 'text-red-600'
+                    }`}>
+                      {formatCurrency(profitLoss?.net_profit)}
                     </span>
                   </div>
                 </div>
@@ -183,14 +255,21 @@ export function Reports() {
                         year: 'numeric'
                       })}
                     </span>
-                    <span className="font-medium">
-                      Rp {prediction.predicted_amount.toLocaleString()}
-                      <span className="text-xs text-gray-500 ml-2">
-                        ({(prediction.confidence_level * 100).toFixed(0)}% confidence)
-                      </span>
-                    </span>
+                    <div className="text-right">
+                      <div className="font-medium text-lg">
+                        {formatCurrency(prediction.predicted_amount)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {(prediction.confidence_level * 100).toFixed(0)}% confidence
+                      </div>
+                    </div>
                   </div>
                 ))}
+                {(!predictions || predictions.length === 0) && (
+                  <div className="text-center text-gray-500 py-4">
+                    No predictions available
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -201,31 +280,45 @@ export function Reports() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
+                  <XAxis 
+                    dataKey="month" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
                   <YAxis 
-                    tickFormatter={(value) => `Rp ${(value/1000000).toFixed(0)}M`}
+                    tickFormatter={formatMillions}
+                    tick={{ fontSize: 12 }}
                   />
-                  <Tooltip 
-                    formatter={(value) => value ? `Rp ${value.toLocaleString()}` : '-'} 
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   <Line 
                     type="monotone" 
                     dataKey="revenue" 
                     stroke="#10B981" 
-                    name="Revenue" 
+                    name="Revenue"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    connectNulls={true}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="expenses" 
                     stroke="#EF4444" 
-                    name="Expenses" 
+                    name="Expenses"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    connectNulls={true}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="profit" 
                     stroke="#3B82F6" 
-                    name="Profit" 
+                    name="Profit"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    connectNulls={true}
                   />
                 </LineChart>
               </ResponsiveContainer>

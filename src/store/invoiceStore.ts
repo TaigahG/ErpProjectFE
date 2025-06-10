@@ -10,6 +10,7 @@ interface InvoiceStore {
   addInvoice: (invoice: CreateInvoiceDTO) => Promise<void>;
 }
 
+// const API_URL = 'http://127.0.0.1:8000/api/v1/invoice';
 const API_URL = 'https://erpprojectbe-production-f59b.up.railway.app/api/v1/invoice';
 
 export const useInvoiceStore = create<InvoiceStore>((set) => ({
